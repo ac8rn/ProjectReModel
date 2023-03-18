@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #created for use  of Enovation Controls
 #this script uses a few open source libraries described below
 #Author: August Nielsen (auggienielsen@gmail.com)
@@ -8,29 +9,23 @@
 import time
 from rpi_ws281x import *
 import argparse
-import neopixel
-import board
+#import neopixel
+#import board
 
 #Raspberry Pi LED 
 LEDcount     = 150      #number of LED pixels
 LEDpin       = 18      #PWM pin 18
 LEDfreq    = 800000  #sig freq in hz, 800 kHz
-#LEDDMA       = 10      #DMA channel to gen signal
-LEDbrightness = 50     #this is default
+LEDdma       = 10      #DMA channel to gen signal
+LEDbrightness = 25     #this is default, 0 darkest, 255 bright
 LEDinvert     = False   #NPN factor
 LEDchannel   = 0  # 1 for 13, 19, 41, 45, 53
 
 #variables for user input
-functionin=0 #describes which output is desired, chosen on PV1100
-colorinr=0 #in red
+functionin=2 #describes which output is desired, chosen on PV1100
+colorinr=255 #in red
 colorinb=0 #in blue
 coloring=0 #in green
-
-#variables for output 
-x=0 #keeps count of LEDs
-
-#for addressing entire strip at once, input is GPIO pin, number of LEDs, and brightness level
-#pixels1 = neopixel.NeoPixel(board.D18, 55, brightnessin)
 
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms=50):
@@ -84,7 +79,7 @@ def allOn(strip, color):
         strip.setPixelColor(i, color)
         strip.show()
 
-# Main program logic follows:
+# Main:
 if __name__ == '__main__':
     # Process arguments
     parser = argparse.ArgumentParser()
@@ -92,7 +87,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Create NeoPixel object with appropriate configuration.
-    strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+    strip = Adafruit_NeoPixel(LEDcount, LEDpin, LEDfreq, LEDdma, LEDinvert, LEDbrightness, LEDchannel)
     # Intialize the library (must be called once before other functions).
     strip.begin()
 
@@ -104,31 +99,36 @@ if __name__ == '__main__':
 
         while True:
             
-            if functionin==0
+            if functionin==0:
             #all on
+            print ('all on')
             allOn(strip, Color(colorinr, colorinb, coloring))
 
 
-            elif functionin==1
+            elif functionin==1:
+            print ('wipe')
             colorWipe(strip, Color(colorinr, colorinb, coloring))
             #color wipe
 
-            elif functionin==2
+            elif functionin==2:
+            print ('chase')
             theaterChase(strip, Color(colorinr, colorinb, coloring))
             #theatre chase
 
-            elif functionin==3
-            rainbow(strip, Color(colorinr, colorinb, coloring))
+            elif functionin==3:
+            print ('rainbow')
+            rainbow(strip)
             #rainbow
 
-            elif functionin==4
-            rainbowCycle(strip, Color(colorinr, colorinb, coloring))
+            elif functionin==4:
+            print ('rainbow cycle')
+            rainbowCycle(strip)
             #rainbow cycle
 
-            elif functionin==5
-            theaterChaseRainbow(strip, Color(colorinr, colorinb, coloring))
+            elif functionin==5:
+            print ('chase rainbow')
+            theaterChaseRainbow(strip)
             #theatre rainbow
-
 
 
     except KeyboardInterrupt:
