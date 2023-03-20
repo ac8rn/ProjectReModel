@@ -17,63 +17,78 @@ LEDcount     = 150      #number of LED pixels
 LEDpin       = 18      #PWM pin 18
 LEDfreq    = 800000  #sig freq in hz, 800 kHz
 LEDdma       = 10      #DMA channel to gen signal
-LEDbrightness = 25     #this is default, 0 darkest, 255 bright
+LEDbrightness = 60     #this is default, 0 darkest, 255 bright
 LEDinvert     = False   #NPN factor
 LEDchannel   = 0  # 1 for 13, 19, 41, 45, 53
 
 #variables for user input
+wait_ms1=50 #colorWipe speed
+wait_ms2=150 #theatre chase mono and rainbow speed
+wait_ms3=50 #rainbow speed
+
 functionin=2 #describes which output is desired, chosen on PV1100
-colorinr=255 #in red
-colorinb=0 #in blue
-coloring=0 #in green
+# 0 on, 1 wipe, 2 theatre chase, 3 rainbow, 4 theatre rainbow, 5 off
+
+colorinr=60 #in red
+colorinb=40 #in blue
+coloring=200 #in green
 
 # Define functions which animate LEDs in various ways.
-def colorWipe(strip, color, wait_ms=50):
+def colorWipe(strip, color, wait_ms1):
     """Wipe color across display a pixel at a time."""
     for i in range(strip.numPixels()):
         strip.setPixelColor(i, color)
         strip.show()
-        time.sleep(wait_ms/1000.0)
+        time.sleep(wait_ms1/1000.0)
 
-def theaterChase(strip, color, wait_ms=50, iterations=10):
+def theaterChase(strip, color, wait_ms2, iterations=10):
     """Movie theater light style chaser animation."""
     for j in range(iterations):
         for q in range(3):
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i+q, color)
             strip.show()
-            time.sleep(wait_ms/1000.0)
+            time.sleep(wait_ms2/1000.0)
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i+q, 0)
+                
+def wheel(pos):
+    """Generate rainbow colors across 0-255 positions."""
+    if pos < 85:
+        return Color(pos * 3, 255 - pos * 3, 0)
+    elif pos < 170:
+        pos -= 85
+        return Color(255 - pos * 3, 0, pos * 3)
+    else:
+        pos -= 170
+        return Color(0, pos * 3, 255 - pos * 3)
 
-def rainbow(strip, wait_ms=20, iterations=1):
+def rainbow(strip, wait_ms3, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
     for j in range(256*iterations):
         for i in range(strip.numPixels()):
             strip.setPixelColor(i, wheel((i+j) & 255))
         strip.show()
-        time.sleep(wait_ms/1000.0)
+        time.sleep(wait_ms3/1000.0)
 
-def rainbowCycle(strip, wait_ms=20, iterations=5):
-    """Draw rainbow that uniformly distributes itself across all pixels."""
-    for j in range(256*iterations):
-        for i in range(strip.numPixels()):
-            strip.setPixelColor(i, wheel((int(i * 256 / strip.numPixels()) + j) & 255))
-        strip.show()
-        time.sleep(wait_ms/1000.0)
-
-def theaterChaseRainbow(strip, wait_ms=50):
+def theaterChaseRainbow(strip, wait_ms2):
     """Rainbow movie theater light style chaser animation."""
     for j in range(256):
         for q in range(3):
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i+q, wheel((i+j) % 255))
             strip.show()
-            time.sleep(wait_ms/1000.0)
+            time.sleep(wait_ms2/1000.0)
             for i in range(0, strip.numPixels(), 3):
                 strip.setPixelColor(i+q, 0)
 
 def allOn(strip, color):
+    """Turn all pixels to same color at once and leave on."""
+    for i in range(strip.numPixels()):
+        strip.setPixelColor(i, color)
+        strip.show()
+
+def allOff(strip, color=Color(0,0,0)):
     """Turn all pixels to same color at once and leave on."""
     for i in range(strip.numPixels()):
         strip.setPixelColor(i, color)
@@ -101,35 +116,38 @@ if __name__ == '__main__':
             
             if functionin==0:
             #all on
-            print ('all on')
-            allOn(strip, Color(colorinr, colorinb, coloring))
+                print ('all on')
+                allOn(strip, Color(colorinr, colorinb, coloring))
 
 
             elif functionin==1:
-            print ('wipe')
-            colorWipe(strip, Color(colorinr, colorinb, coloring))
+                print ('wipe')
+                colorWipe(strip, Color(colorinr, colorinb, coloring), wait_ms1)
+                colorWipe(strip, Color(0, 0, 0), wait_ms1)
             #color wipe
 
             elif functionin==2:
-            print ('chase')
-            theaterChase(strip, Color(colorinr, colorinb, coloring))
+                print ('chase')
+                theaterChase(strip, Color(colorinr, colorinb, coloring), wait_ms2)
             #theatre chase
 
             elif functionin==3:
-            print ('rainbow')
-            rainbow(strip)
+                print ('rainbow')
+                rainbow(strip, wait_ms3)
             #rainbow
 
             elif functionin==4:
-            print ('rainbow cycle')
-            rainbowCycle(strip)
-            #rainbow cycle
-
-            elif functionin==5:
-            print ('chase rainbow')
-            theaterChaseRainbow(strip)
+                print ('chase rainbow')
+                theaterChaseRainbow(strip, wait_ms2)
             #theatre rainbow
-
+                
+            elif functionin==5:
+                print ('off')
+                allOff(strip)
+                
+            else:
+                print ('error')
+                
 
     except KeyboardInterrupt:
         if args.clear:
