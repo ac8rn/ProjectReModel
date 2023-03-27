@@ -17,7 +17,7 @@ LEDcount     = 150      #number of LED pixels
 LEDpin       = 18      #PWM pin 18
 LEDfreq    = 800000  #sig freq in hz, 800 kHz
 LEDdma       = 10      #DMA channel to gen signal
-LEDbrightness = 60     #this is default, 0 darkest, 255 bright
+LEDbrightness = 255     #this is default, 0 darkest, 255 bright
 LEDinvert     = False   #NPN factor
 LEDchannel   = 0  # 1 for 13, 19, 41, 45, 53
 
@@ -26,12 +26,55 @@ wait_ms1=50 #colorWipe speed
 wait_ms2=150 #theatre chase mono and rainbow speed
 wait_ms3=50 #rainbow speed
 
-functionin=2 #describes which output is desired, chosen on PV1100
+colorinr=0 #initialization 
+colorinb=0
+coloring=0
+
+functionin=5 #described below
+colorin=1 #0=green, 1=red, 2=blue, 3=purple, 4=yellow
+brightnessin=0 #0=10, 1=40, 2=90, 3=160, 4=250; 10+20x+10x^2
+ibn=4-brightnessin #inverse of brightnessin used in rainbow
+
+if colorin==0: #green
+    print('green')
+    colorinr=0
+    colorinb=0
+    coloring=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin)
+        
+elif colorin==1: #red
+    print('red')
+    colorinr=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin)
+    colorinb=0
+    coloring=0
+    
+elif colorin==2: #blue
+    print('blue')
+    colorinr=0
+    colorinb=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin)
+    coloring=0
+    
+elif colorin==3: #purple
+    print('purple')
+    colorinr=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin) 
+    colorinb=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin)
+    coloring=0
+    
+elif colorin==4: #yellow
+    print('yellow')
+    colorinr=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin)
+    colorinb=0
+    coloring=10 + (20 * brightnessin) + (10 * brightnessin * brightnessin)
+
+else:
+    print('error')
+    
+#describes which output is desired, chosen on PV1100
 # 0 on, 1 wipe, 2 theatre chase, 3 rainbow, 4 theatre rainbow, 5 off
 
-colorinr=60 #in red
-colorinb=40 #in blue
-coloring=200 #in green
+
+#colorinr=60 #in red
+#colorinb=40 #in blue
+#coloring=200 #in green
 
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms1):
@@ -55,13 +98,13 @@ def theaterChase(strip, color, wait_ms2, iterations=10):
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
     if pos < 85:
-        return Color(pos * 3, 255 - pos * 3, 0)
+        return Color(abs(pos * 3 - (ibn * 20)), abs(255 - (pos * 3) - (ibn * 20)), 0)
     elif pos < 170:
         pos -= 85
-        return Color(255 - pos * 3, 0, pos * 3)
+        return Color(abs(255 - (pos * 3) - (ibn * 20)), 0, abs(pos * 3 - (ibn * 20)))
     else:
         pos -= 170
-        return Color(0, pos * 3, 255 - pos * 3)
+        return Color(0, abs(pos * 3 - (ibn * 20)), abs(255 - (pos * 3) - (ibn * 20)))
 
 def rainbow(strip, wait_ms3, iterations=1):
     """Draw rainbow that fades across all pixels at once."""
@@ -117,18 +160,18 @@ if __name__ == '__main__':
             if functionin==0:
             #all on
                 print ('all on')
-                allOn(strip, Color(colorinr, colorinb, coloring))
+                allOn(strip, Color(colorinr, coloring, colorinb))
 
 
             elif functionin==1:
                 print ('wipe')
-                colorWipe(strip, Color(colorinr, colorinb, coloring), wait_ms1)
+                colorWipe(strip, Color(colorinr, coloring, colorinb), wait_ms1)
                 colorWipe(strip, Color(0, 0, 0), wait_ms1)
             #color wipe
 
             elif functionin==2:
                 print ('chase')
-                theaterChase(strip, Color(colorinr, colorinb, coloring), wait_ms2)
+                theaterChase(strip, Color(colorinr, coloring, colorinb), wait_ms2)
             #theatre chase
 
             elif functionin==3:
